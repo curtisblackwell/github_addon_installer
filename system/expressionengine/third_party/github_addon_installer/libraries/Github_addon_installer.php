@@ -120,7 +120,7 @@ class Github_addon_installer
 		return $this->temp_path;
 	}
 	
-	protected function curl($url)
+	public function curl($url)
 	{
 		$ch = curl_init($url);
 		

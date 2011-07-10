@@ -53,7 +53,7 @@ class Github_addon_installer_mcp
 	{
 		$this->EE->cp->set_variable('cp_page_title', $this->EE->lang->line('github_addon_installer_module_name'));
 		
-		$this->EE->load->library('addons');
+		$this->EE->load->library(array('addons', 'github_addon_installer'));
 		
 		$vars = array();
 		$vars['addons'] = array();
@@ -62,36 +62,11 @@ class Github_addon_installer_mcp
 		
 		$versions = array();
 		
-		//@TODO not works yet, must get leevi to require_once his EpiCurl lib
-		if (FALSE && $this->EE->addons_model->accessory_installed('nsm_addon_updater'))
+		if ($this->EE->addons_model->accessory_installed('nsm_addon_updater'))
 		{
-			$nsm_addon_updater = new Nsm_addon_updater_acc;
+			$this->EE->load->library('nsm_addon_updater_connector', array('fetch_method', array($this->EE->github_addon_installer, 'curl')));
 			
-			if ($feeds = $nsm_addon_updater->_updateFeeds())
-			{
-				foreach ($feeds as $addon => $feed)
-				{
-					$namespaces = $feed->getNameSpaces(TRUE);
-					
-					$latest_version = 0;
-	
-					include PATH_THIRD.'/'.$addon.'/config.php';
-	
-					foreach ($feed->channel->item as $version)
-					{
-						$ee_addon = $version->children($namespaces['ee_addon']);
-						
-						$version_number = (string) $ee_addon->version;
-						
-						if (version_compare($version_number, $config['version'], '>') && version_compare($version_number, $latest_version, '>'))
-						{
-							$versions[$addon] = $version_number;
-						}
-					}
-				}
-			}
-			
-			unset($nsm_addon_updater);
+			$versions = $this->EE->nsm_addon_updater_connector->get_versions();
 		}
 		
 		foreach ($this->manifest as $addon => $params)
